@@ -35,6 +35,54 @@
   color: #b3c6b7;
 }
 
+.resources {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 18px;
+  margin-bottom: 12px;
+  color: #b3c6b7;
+  font-size: 0.85rem;
+}
+
+.resources strong {
+  color: #f2eee4;
+}
+
+.shop {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.shopButton {
+  padding: 7px 12px;
+  border: 1px solid rgb(229 200 139 / 35%);
+  border-radius: 8px;
+  color: #e5c88b;
+  background: rgb(7 13 9 / 35%);
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.shopButton:hover:not(:disabled) {
+  background: rgb(229 200 139 / 12%);
+}
+
+.shopButton:disabled {
+  color: #667269;
+  border-color: rgb(179 198 183 / 12%);
+  cursor: not-allowed;
+}
+
+.shopButton:focus-visible {
+  outline: 2px solid #e5c88b;
+  outline-offset: 2px;
+}
+
 .toolbar {
   display: flex;
   flex-wrap: wrap;

@@ -1,13 +1,16 @@
 import { useCallback, useEffect, useState } from 'react'
 import { GameCanvas } from '../components/GameCanvas/GameCanvas'
 import {
+  buySeed,
+  createInitialGameState,
+  harvestForReward,
+  plantSeed,
+  SEED_PRICES,
+} from '../game/economy'
+import {
   applyHoe,
-  createInitialGarden,
   getCell,
   getPlantGrowth,
-  harvestPlant,
-  plantInCell,
-  type Garden,
   type PlantType,
 } from '../game/garden'
 import type { GridCell } from '../game/grid'
@@ -21,12 +24,13 @@ const PLANT_NAMES: Record<PlantType, string> = {
 }
 
 export function App() {
-  const [garden, setGarden] = useState<Garden>(createInitialGarden)
+  const [gameState, setGameState] = useState(createInitialGameState)
   const [selectedCoordinates, setSelectedCoordinates] =
     useState<GridCell | null>(null)
   const [activeTool, setActiveTool] = useState<Tool>('select')
   const [plantType, setPlantType] = useState<PlantType>('sakura')
   const [currentTime, setCurrentTime] = useState(Date.now)
+  const { garden, economy } = gameState
 
   useEffect(() => {
     const timerId = window.setInterval(() => {
@@ -47,18 +51,24 @@ export function App() {
     setSelectedCoordinates(cell)
 
     if (activeTool === 'hoe') {
-      setGarden((currentGarden) => applyHoe(currentGarden, cell))
+      setGameState((currentState) => {
+        const garden = applyHoe(currentState.garden, cell)
+
+        return garden === currentState.garden
+          ? currentState
+          : { ...currentState, garden }
+      })
     }
 
     if (activeTool === 'plant') {
-      setGarden((currentGarden) =>
-        plantInCell(currentGarden, cell, plantType, Date.now()),
+      setGameState((currentState) =>
+        plantSeed(currentState, cell, plantType, Date.now()),
       )
     }
 
     if (activeTool === 'harvest') {
-      setGarden((currentGarden) =>
-        harvestPlant(currentGarden, cell, Date.now()),
+      setGameState((currentState) =>
+        harvestForReward(currentState, cell, Date.now()),
       )
     }
   }, [activeTool, plantType])
@@ -71,6 +81,30 @@ export function App() {
         <p className={styles.description}>
           Выберите клетку будущего сада
         </p>
+
+        <div className={styles.resources} aria-label="Ресурсы">
+          <span>Coins: <strong>{economy.coins}</strong></span>
+          <span>Sakura seeds: <strong>{economy.seeds.sakura}</strong></span>
+          <span>Flower seeds: <strong>{economy.seeds.flower}</strong></span>
+        </div>
+
+        <div className={styles.shop} aria-label="Магазин семян">
+          {(Object.entries(PLANT_NAMES) as [PlantType, string][]).map(
+            ([type, name]) => (
+              <button
+                key={type}
+                className={styles.shopButton}
+                type="button"
+                disabled={economy.coins < SEED_PRICES[type]}
+                onClick={() =>
+                  setGameState((currentState) => buySeed(currentState, type))
+                }
+              >
+                Buy {name} seed · {SEED_PRICES[type]} coins
+              </button>
+            ),
+          )}
+        </div>
 
         <div className={styles.toolbar} aria-label="Инструменты">
           <button
