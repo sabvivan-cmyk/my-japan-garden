@@ -2,11 +2,25 @@ import { GRID_SIZE, type GridCell } from './grid'
 
 export type SurfaceType = 'grass' | 'soil'
 export type PlantType = 'sakura' | 'flower'
+export type GrowthStage = 'seed' | 'sprout' | 'mature'
+
+export type Plant = Readonly<{
+  type: PlantType
+  plantedAt: number
+}>
+
+export type PlantGrowth = Readonly<{
+  stage: GrowthStage
+  progress: number
+}>
+
+export const GROWTH_DURATION_MS = 30_000
+const SPROUT_AT_MS = GROWTH_DURATION_MS / 2
 
 export type GardenCell = Readonly<GridCell & {
   surface: SurfaceType
   isInteractable: boolean
-  plant: PlantType | null
+  plant: Plant | null
 }>
 
 export type Garden = readonly GardenCell[]
@@ -69,7 +83,8 @@ export function applyHoe(garden: Garden, coordinates: GridCell): Garden {
 export function plantInCell(
   garden: Garden,
   coordinates: GridCell,
-  plant: PlantType,
+  plantType: PlantType,
+  plantedAt: number,
 ): Garden {
   const cell = getCell(garden, coordinates)
 
@@ -79,7 +94,47 @@ export function plantInCell(
 
   const cellIndex = cell.y * GRID_SIZE + cell.x
   const nextGarden = [...garden]
-  nextGarden[cellIndex] = { ...cell, plant }
+  nextGarden[cellIndex] = {
+    ...cell,
+    plant: { type: plantType, plantedAt },
+  }
+
+  return nextGarden
+}
+
+export function getPlantGrowth(plant: Plant, currentTime: number): PlantGrowth {
+  const elapsedTime = Math.max(0, currentTime - plant.plantedAt)
+  const progress = Math.min(elapsedTime / GROWTH_DURATION_MS, 1)
+
+  if (elapsedTime >= GROWTH_DURATION_MS) {
+    return { stage: 'mature', progress }
+  }
+
+  if (elapsedTime >= SPROUT_AT_MS) {
+    return { stage: 'sprout', progress }
+  }
+
+  return { stage: 'seed', progress }
+}
+
+export function harvestPlant(
+  garden: Garden,
+  coordinates: GridCell,
+  currentTime: number,
+): Garden {
+  const cell = getCell(garden, coordinates)
+
+  if (
+    !cell?.isInteractable ||
+    !cell.plant ||
+    getPlantGrowth(cell.plant, currentTime).stage !== 'mature'
+  ) {
+    return garden
+  }
+
+  const cellIndex = cell.y * GRID_SIZE + cell.x
+  const nextGarden = [...garden]
+  nextGarden[cellIndex] = { ...cell, plant: null }
 
   return nextGarden
 }

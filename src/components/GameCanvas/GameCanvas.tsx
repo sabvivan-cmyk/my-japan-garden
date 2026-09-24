@@ -10,30 +10,36 @@ import styles from './GameCanvas.module.css'
 type GameCanvasProps = {
   garden: Garden
   selectedCell: GridCell | null
+  currentTime: number
   onCellSelect: (cell: GridCell) => void
 }
 
-type ViewState = Pick<GameCanvasProps, 'garden' | 'selectedCell'>
+type ViewState = Pick<GameCanvasProps, 'garden' | 'selectedCell' | 'currentTime'>
 
 export function GameCanvas({
   garden,
   selectedCell,
+  currentTime,
   onCellSelect,
 }: GameCanvasProps) {
   const hostRef = useRef<HTMLDivElement>(null)
   const callbackRef = useRef(onCellSelect)
   const gameRef = useRef<GardenGame | null>(null)
-  const viewStateRef = useRef<ViewState>({ garden, selectedCell })
+  const viewStateRef = useRef<ViewState>({ garden, selectedCell, currentTime })
 
   useEffect(() => {
     callbackRef.current = onCellSelect
   }, [onCellSelect])
 
   useEffect(() => {
-    const viewState = { garden, selectedCell }
+    const viewState = { garden, selectedCell, currentTime }
     viewStateRef.current = viewState
-    gameRef.current?.update(viewState.garden, viewState.selectedCell)
-  }, [garden, selectedCell])
+    gameRef.current?.update(
+      viewState.garden,
+      viewState.selectedCell,
+      viewState.currentTime,
+    )
+  }, [garden, selectedCell, currentTime])
 
   useEffect(() => {
     const host = hostRef.current
@@ -57,7 +63,11 @@ export function GameCanvas({
 
       gameRef.current = game
       const viewState = viewStateRef.current
-      game?.update(viewState.garden, viewState.selectedCell)
+      game?.update(
+        viewState.garden,
+        viewState.selectedCell,
+        viewState.currentTime,
+      )
       destroyGame = game?.destroy
     })
 

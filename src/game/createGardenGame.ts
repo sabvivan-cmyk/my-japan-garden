@@ -6,10 +6,14 @@ import {
   pointToCell,
   type GridCell,
 } from './grid'
-import type { Garden } from './garden'
+import { getPlantGrowth, type Garden } from './garden'
 
 export type GardenGame = {
-  update: (garden: Garden, selectedCell: GridCell | null) => void
+  update: (
+    garden: Garden,
+    selectedCell: GridCell | null,
+    currentTime: number,
+  ) => void
   destroy: () => void
 }
 
@@ -24,17 +28,47 @@ const COLORS = {
   flowerStem: 0x315c32,
   flowerPetal: 0xf2df70,
   flowerCenter: 0x9a6230,
+  seed: 0x34291f,
+  sprout: 0x79a95b,
 }
 
-function drawPlant(graphics: Graphics, cell: Garden[number]) {
+function drawPlant(
+  graphics: Graphics,
+  cell: Garden[number],
+  currentTime: number,
+) {
   if (!cell.plant) {
     return
   }
 
   const centerX = cell.x * CELL_SIZE + CELL_SIZE / 2
   const centerY = cell.y * CELL_SIZE + CELL_SIZE / 2
+  const { stage } = getPlantGrowth(cell.plant, currentTime)
 
-  if (cell.plant === 'sakura') {
+  if (stage === 'seed') {
+    graphics
+      .ellipse(centerX, centerY + 10, cell.plant.type === 'sakura' ? 6 : 4, 3)
+      .fill(
+        cell.plant.type === 'sakura' ? COLORS.sakuraTrunk : COLORS.seed,
+      )
+    return
+  }
+
+  if (stage === 'sprout') {
+    graphics
+      .rect(centerX - 2, centerY + 2, 4, 18)
+      .fill(COLORS.sprout)
+      .ellipse(centerX - 6, centerY + 2, 7, 4)
+      .ellipse(centerX + 6, centerY - 3, 7, 4)
+      .fill(
+        cell.plant.type === 'sakura'
+          ? COLORS.sakuraBlossom
+          : COLORS.flowerPetal,
+      )
+    return
+  }
+
+  if (cell.plant.type === 'sakura') {
     graphics
       .rect(centerX - 4, centerY + 4, 8, 22)
       .fill(COLORS.sakuraTrunk)
@@ -80,7 +114,11 @@ export async function createGardenGame(
   }
 
   const grid = new Graphics()
-  const drawGrid = (garden: Garden, selectedCell: GridCell | null) => {
+  const drawGrid = (
+    garden: Garden,
+    selectedCell: GridCell | null,
+    currentTime: number,
+  ) => {
     grid.clear()
 
     for (const cell of garden) {
@@ -94,7 +132,7 @@ export async function createGardenGame(
           width: isSelected ? 4 : 1,
         })
 
-      drawPlant(grid, cell)
+      drawPlant(grid, cell, currentTime)
     }
   }
 

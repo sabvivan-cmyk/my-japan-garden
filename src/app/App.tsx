@@ -1,9 +1,11 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { GameCanvas } from '../components/GameCanvas/GameCanvas'
 import {
   applyHoe,
   createInitialGarden,
   getCell,
+  getPlantGrowth,
+  harvestPlant,
   plantInCell,
   type Garden,
   type PlantType,
@@ -11,7 +13,7 @@ import {
 import type { GridCell } from '../game/grid'
 import styles from './App.module.css'
 
-type Tool = 'select' | 'hoe' | 'plant'
+type Tool = 'select' | 'hoe' | 'plant' | 'harvest'
 
 const PLANT_NAMES: Record<PlantType, string> = {
   sakura: 'Sakura',
@@ -24,9 +26,21 @@ export function App() {
     useState<GridCell | null>(null)
   const [activeTool, setActiveTool] = useState<Tool>('select')
   const [plantType, setPlantType] = useState<PlantType>('sakura')
+  const [currentTime, setCurrentTime] = useState(Date.now)
+
+  useEffect(() => {
+    const timerId = window.setInterval(() => {
+      setCurrentTime(Date.now())
+    }, 1_000)
+
+    return () => window.clearInterval(timerId)
+  }, [])
 
   const selectedCell = selectedCoordinates
     ? getCell(garden, selectedCoordinates)
+    : null
+  const selectedGrowth = selectedCell?.plant
+    ? getPlantGrowth(selectedCell.plant, currentTime)
     : null
 
   const handleCellSelect = useCallback((cell: GridCell) => {
@@ -37,7 +51,15 @@ export function App() {
     }
 
     if (activeTool === 'plant') {
-      setGarden((currentGarden) => plantInCell(currentGarden, cell, plantType))
+      setGarden((currentGarden) =>
+        plantInCell(currentGarden, cell, plantType, Date.now()),
+      )
+    }
+
+    if (activeTool === 'harvest') {
+      setGarden((currentGarden) =>
+        harvestPlant(currentGarden, cell, Date.now()),
+      )
     }
   }, [activeTool, plantType])
 
@@ -75,6 +97,14 @@ export function App() {
           >
             Plant
           </button>
+          <button
+            className={styles.toolButton}
+            data-active={activeTool === 'harvest'}
+            type="button"
+            onClick={() => setActiveTool('harvest')}
+          >
+            Harvest
+          </button>
         </div>
 
         {activeTool === 'plant' && (
@@ -98,6 +128,7 @@ export function App() {
         <GameCanvas
           garden={garden}
           selectedCell={selectedCell}
+          currentTime={currentTime}
           onCellSelect={handleCellSelect}
         />
 
@@ -107,8 +138,12 @@ export function App() {
               Выбрана клетка:{' '}
               <strong>
                 x {selectedCell.x}, y {selectedCell.y} · {selectedCell.surface}
-                {selectedCell.plant && (
-                  <> · {PLANT_NAMES[selectedCell.plant]}</>
+                {selectedCell.plant && selectedGrowth && (
+                  <>
+                    {' '}· {PLANT_NAMES[selectedCell.plant.type]} ·{' '}
+                    {selectedGrowth.stage} ·{' '}
+                    {Math.round(selectedGrowth.progress * 100)}%
+                  </>
                 )}
               </strong>
             </>
