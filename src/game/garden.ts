@@ -1,10 +1,12 @@
 import { GRID_SIZE, type GridCell } from './grid'
 
 export type SurfaceType = 'grass' | 'soil'
+export type PlantType = 'sakura' | 'flower'
 
 export type GardenCell = Readonly<GridCell & {
   surface: SurfaceType
   isInteractable: boolean
+  plant: PlantType | null
 }>
 
 export type Garden = readonly GardenCell[]
@@ -28,6 +30,7 @@ export function createInitialGarden(): Garden {
       y,
       surface: INITIAL_SOIL_CELLS.has(`${x},${y}`) ? 'soil' : 'grass',
       isInteractable: true,
+      plant: null,
     }
   })
 }
@@ -59,6 +62,24 @@ export function applyHoe(garden: Garden, coordinates: GridCell): Garden {
   const cellIndex = cell.y * GRID_SIZE + cell.x
   const nextGarden = [...garden]
   nextGarden[cellIndex] = { ...cell, surface: 'soil' }
+
+  return nextGarden
+}
+
+export function plantInCell(
+  garden: Garden,
+  coordinates: GridCell,
+  plant: PlantType,
+): Garden {
+  const cell = getCell(garden, coordinates)
+
+  if (!cell?.isInteractable || cell.surface !== 'soil' || cell.plant) {
+    return garden
+  }
+
+  const cellIndex = cell.y * GRID_SIZE + cell.x
+  const nextGarden = [...garden]
+  nextGarden[cellIndex] = { ...cell, plant }
 
   return nextGarden
 }

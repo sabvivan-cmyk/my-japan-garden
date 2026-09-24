@@ -4,18 +4,26 @@ import {
   applyHoe,
   createInitialGarden,
   getCell,
+  plantInCell,
   type Garden,
+  type PlantType,
 } from '../game/garden'
 import type { GridCell } from '../game/grid'
 import styles from './App.module.css'
 
-type Tool = 'select' | 'hoe'
+type Tool = 'select' | 'hoe' | 'plant'
+
+const PLANT_NAMES: Record<PlantType, string> = {
+  sakura: 'Sakura',
+  flower: 'Flower',
+}
 
 export function App() {
   const [garden, setGarden] = useState<Garden>(createInitialGarden)
   const [selectedCoordinates, setSelectedCoordinates] =
     useState<GridCell | null>(null)
   const [activeTool, setActiveTool] = useState<Tool>('select')
+  const [plantType, setPlantType] = useState<PlantType>('sakura')
 
   const selectedCell = selectedCoordinates
     ? getCell(garden, selectedCoordinates)
@@ -27,7 +35,11 @@ export function App() {
     if (activeTool === 'hoe') {
       setGarden((currentGarden) => applyHoe(currentGarden, cell))
     }
-  }, [activeTool])
+
+    if (activeTool === 'plant') {
+      setGarden((currentGarden) => plantInCell(currentGarden, cell, plantType))
+    }
+  }, [activeTool, plantType])
 
   return (
     <main className={styles.page}>
@@ -55,7 +67,33 @@ export function App() {
           >
             Hoe
           </button>
+          <button
+            className={styles.toolButton}
+            data-active={activeTool === 'plant'}
+            type="button"
+            onClick={() => setActiveTool('plant')}
+          >
+            Plant
+          </button>
         </div>
+
+        {activeTool === 'plant' && (
+          <div className={styles.plantPicker} aria-label="Вид растения">
+            {(Object.entries(PLANT_NAMES) as [PlantType, string][]).map(
+              ([type, name]) => (
+                <button
+                  key={type}
+                  className={styles.plantButton}
+                  type="button"
+                  aria-pressed={plantType === type}
+                  onClick={() => setPlantType(type)}
+                >
+                  {name}
+                </button>
+              ),
+            )}
+          </div>
+        )}
 
         <GameCanvas
           garden={garden}
@@ -69,6 +107,9 @@ export function App() {
               Выбрана клетка:{' '}
               <strong>
                 x {selectedCell.x}, y {selectedCell.y} · {selectedCell.surface}
+                {selectedCell.plant && (
+                  <> · {PLANT_NAMES[selectedCell.plant]}</>
+                )}
               </strong>
             </>
           ) : (

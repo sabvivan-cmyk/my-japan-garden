@@ -37,6 +37,8 @@
 
 .toolbar {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 8px;
   margin-bottom: 14px;
   padding: 5px;
@@ -45,8 +47,14 @@
   background: rgb(7 13 9 / 35%);
 }
 
+.plantPicker {
+  display: flex;
+  gap: 8px;
+  margin: -6px 0 14px;
+}
+
 .toolButton {
-  min-width: 92px;
+  min-width: 76px;
   padding: 9px 16px;
   border: 1px solid transparent;
   border-radius: 7px;
@@ -69,6 +77,27 @@
 }
 
 .toolButton:focus-visible {
+  outline: 2px solid #e5c88b;
+  outline-offset: 2px;
+}
+
+.plantButton {
+  padding: 6px 12px;
+  border: 1px solid rgb(179 198 183 / 20%);
+  border-radius: 999px;
+  color: #b3c6b7;
+  background: rgb(7 13 9 / 35%);
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.plantButton[aria-pressed='true'] {
+  border-color: #e5c88b;
+  color: #f2eee4;
+}
+
+.plantButton:focus-visible {
   outline: 2px solid #e5c88b;
   outline-offset: 2px;
 }

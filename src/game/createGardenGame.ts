@@ -19,6 +19,42 @@ const COLORS = {
   soil: 0x8a6545,
   gridLine: 0x54705c,
   selectedBorder: 0xf3d79a,
+  sakuraTrunk: 0x6f4938,
+  sakuraBlossom: 0xf3a9b8,
+  flowerStem: 0x315c32,
+  flowerPetal: 0xf2df70,
+  flowerCenter: 0x9a6230,
+}
+
+function drawPlant(graphics: Graphics, cell: Garden[number]) {
+  if (!cell.plant) {
+    return
+  }
+
+  const centerX = cell.x * CELL_SIZE + CELL_SIZE / 2
+  const centerY = cell.y * CELL_SIZE + CELL_SIZE / 2
+
+  if (cell.plant === 'sakura') {
+    graphics
+      .rect(centerX - 4, centerY + 4, 8, 22)
+      .fill(COLORS.sakuraTrunk)
+      .circle(centerX, centerY - 6, 16)
+      .circle(centerX - 12, centerY, 11)
+      .circle(centerX + 12, centerY, 11)
+      .fill(COLORS.sakuraBlossom)
+    return
+  }
+
+  graphics
+    .rect(centerX - 2, centerY, 4, 22)
+    .fill(COLORS.flowerStem)
+    .circle(centerX, centerY - 8, 6)
+    .circle(centerX - 7, centerY - 2, 6)
+    .circle(centerX + 7, centerY - 2, 6)
+    .circle(centerX, centerY + 4, 6)
+    .fill(COLORS.flowerPetal)
+    .circle(centerX, centerY - 2, 5)
+    .fill(COLORS.flowerCenter)
 }
 
 export async function createGardenGame(
@@ -57,6 +93,8 @@ export async function createGardenGame(
           color: isSelected ? COLORS.selectedBorder : COLORS.gridLine,
           width: isSelected ? 4 : 1,
         })
+
+      drawPlant(grid, cell)
     }
   }
 
