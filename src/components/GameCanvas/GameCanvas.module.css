@@ -1,0 +1,17 @@
+.canvasHost {
+  width: min(100%, 512px);
+  overflow: hidden;
+  border: 1px solid rgb(229 200 139 / 35%);
+  border-radius: 12px;
+  background: #223329;
+  box-shadow: 0 24px 64px rgb(0 0 0 / 28%);
+  line-height: 0;
+}
+
+.canvasHost canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  cursor: pointer;
+  touch-action: none;
+}
