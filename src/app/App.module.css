@@ -31,8 +31,46 @@
 }
 
 .description {
-  margin: 12px 0 24px;
+  margin: 12px 0 18px;
   color: #b3c6b7;
+}
+
+.toolbar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding: 5px;
+  border: 1px solid rgb(179 198 183 / 20%);
+  border-radius: 10px;
+  background: rgb(7 13 9 / 35%);
+}
+
+.toolButton {
+  min-width: 92px;
+  padding: 9px 16px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  color: #b3c6b7;
+  background: transparent;
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.toolButton:hover {
+  color: #f2eee4;
+  background: rgb(179 198 183 / 8%);
+}
+
+.toolButton[data-active='true'] {
+  border-color: rgb(229 200 139 / 45%);
+  color: #f2eee4;
+  background: rgb(229 200 139 / 14%);
+}
+
+.toolButton:focus-visible {
+  outline: 2px solid #e5c88b;
+  outline-offset: 2px;
 }
 
 .status {

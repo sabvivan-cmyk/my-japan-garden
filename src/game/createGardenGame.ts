@@ -2,22 +2,22 @@ import { Application, Graphics, Rectangle } from 'pixi.js'
 import {
   CELL_SIZE,
   GRID_PIXEL_SIZE,
-  GRID_SIZE,
   isSameCell,
   pointToCell,
   type GridCell,
 } from './grid'
+import type { Garden } from './garden'
 
-type GardenGame = {
+export type GardenGame = {
+  update: (garden: Garden, selectedCell: GridCell | null) => void
   destroy: () => void
 }
 
 const COLORS = {
   background: 0x223329,
-  cell: 0x304a39,
-  alternateCell: 0x2c4435,
+  grass: 0x426b45,
+  soil: 0x8a6545,
   gridLine: 0x54705c,
-  selectedCell: 0xc99b5d,
   selectedBorder: 0xf3d79a,
 }
 
@@ -44,43 +44,31 @@ export async function createGardenGame(
   }
 
   const grid = new Graphics()
-  let selectedCell: GridCell | null = null
-
-  const drawGrid = () => {
+  const drawGrid = (garden: Garden, selectedCell: GridCell | null) => {
     grid.clear()
 
-    for (let y = 0; y < GRID_SIZE; y += 1) {
-      for (let x = 0; x < GRID_SIZE; x += 1) {
-        const isSelected = isSameCell(selectedCell, { x, y })
-        const fillColor = isSelected
-          ? COLORS.selectedCell
-          : (x + y) % 2 === 0
-            ? COLORS.cell
-            : COLORS.alternateCell
+    for (const cell of garden) {
+      const isSelected = isSameCell(selectedCell, cell)
 
-        grid
-          .rect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
-          .fill(fillColor)
-          .stroke({
-            color: isSelected ? COLORS.selectedBorder : COLORS.gridLine,
-            width: isSelected ? 3 : 1,
-          })
-      }
+      grid
+        .rect(cell.x * CELL_SIZE, cell.y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+        .fill(COLORS[cell.surface])
+        .stroke({
+          color: isSelected ? COLORS.selectedBorder : COLORS.gridLine,
+          width: isSelected ? 4 : 1,
+        })
     }
   }
 
-  drawGrid()
   grid.eventMode = 'static'
   grid.hitArea = new Rectangle(0, 0, GRID_PIXEL_SIZE, GRID_PIXEL_SIZE)
   grid.on('pointertap', (event) => {
     const cell = pointToCell(event.global.x, event.global.y)
 
-    if (!cell || isSameCell(selectedCell, cell)) {
+    if (!cell) {
       return
     }
 
-    selectedCell = cell
-    drawGrid()
     onCellSelect(cell)
   })
 
@@ -91,6 +79,7 @@ export async function createGardenGame(
   let isDestroyed = false
 
   return {
+    update: drawGrid,
     destroy: () => {
       if (isDestroyed) {
         return
